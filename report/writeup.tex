@@ -1,0 +1,74 @@
+\documentclass[10pt,twocolumn]{article}
+\usepackage[a4paper,margin=1.6cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{6pt}{3pt}
+\setlength{\parskip}{2pt}
+
+\title{\vspace{-1.2cm}\textbf{Predicting Metabolic Cost During Human-in-the-Loop Optimization}\\
+\large UE24CS352A Machine Learning Mini-Project -- Team 13 (Problem 18)}
+\author{Manav Dewangan (PES2UG24CS262) \and Lakshmi Narasimha Moorty Perepa (PES2UG24CS248)}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1cm}
+
+%% ---------------- Sections 1-3: Manav Dewangan ----------------
+\section{Problem Statement}
+Human-in-the-loop optimisation (HILO) tunes the controller of an assistive exoskeleton while a
+person walks, using metabolic cost (energy expenditure) as the objective. Metabolic cost is slow to
+reach steady state, very noisy, and needs a breathing mask in a laboratory. The goal is to
+\emph{predict} normalised metabolic cost from signals that can be measured outside the lab --
+gait (step) features and surface EMG -- together with the exoskeleton control parameters. We
+re-implement the CS229 study of Krimsky and Ng~\cite{krimsky} in Python and test whether its
+accuracy holds when the model must predict a walking day it has never seen.
+
+\section{Dataset}
+We use the processed dataset released with~\cite{krimsky}: two naive subjects (S1, S2), each
+walking on 5 days; each day is a 72-minute CMA-ES optimisation trial with 36 controller settings
+(2\,min each), giving 180 samples per subject (179 for S2 after removing one physically
+impossible negative value). Each sample summarises the last 30\,s of a condition with 29 features:
+9 step features (per-leg peak vertical force, peak dorsi-/plantar-flexion, step time; step width),
+16 EMG RMS values (8 per leg) and 4 control parameters. The target is net metabolic cost divided
+by the net cost of normal walking on the same day (variance 0.066 for S1, 0.036 for S2).
+Exploratory analysis showed a strong \textbf{day effect}: mean cost falls from about 1.1 on day~1 to
+about 0.7 on day~5 as the subject adapts, and left/right step times are almost perfectly
+correlated ($r\approx1$).
+
+\section{Approach}
+\textbf{Evaluation protocols.} (i) \emph{Random 5-fold CV}, repeated 3 times -- the protocol of
+the reference paper, used for comparison; (ii) \emph{leave-one-day-out (LODO) CV} -- train on 4
+days and test on the unseen fifth, which the paper proposed as the realistic test. Because
+conditions within a day are correlated, random k-fold is expected to be optimistic.
+\textbf{Leak-free pipelines.} Every transformation (standardisation, hyper-parameter search,
+feature selection, PCA) is fitted on the training folds only. The reference code standardised the
+full dataset before splitting; under LODO this made S2's LASSO error look 21\% lower
+(0.0243 vs 0.0309), an over-optimistic estimate we avoid.
+\textbf{Baselines.} Constant (training mean), LASSO (L1 strength by inner 5-fold CV) and Ridge
+(L2 strength by leave-one-out CV), each on four feature sets: all, step+EMG, step only, EMG only.
+
+%% ---------------- Sections 4-6: Moorty Perepa ----------------
+%% B-SECTIONS:START
+\section{Implementation}
+% TODO (Moorty): code structure, neural network, nested tuning, selection/PCA.
+
+\section{Results}
+% TODO (Moorty): results table, figure and discussion.
+
+\section{Conclusions}
+% TODO (Moorty): conclusions and future work.
+%% B-SECTIONS:END
+
+\begin{thebibliography}{9}\small
+\bibitem{krimsky} E. Krimsky and E. Ng, ``Predicting Metabolic Cost During Human-in-the-Loop
+Optimization,'' CS229 Project Report, Stanford University, 2018.
+\bibitem{zhang} J. Zhang \emph{et al.}, ``Human-in-the-loop optimization of exoskeleton
+assistance during walking,'' \emph{Science}, 356(6344):1280--1284, 2017.
+\end{thebibliography}
+
+\noindent\small Code: private GitHub repository \texttt{hilo-metabolic-cost} (shared with faculty).
+\end{document}
