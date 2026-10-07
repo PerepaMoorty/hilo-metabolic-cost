@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# LaTeX build files (commit only the .tex and the final PDF)
+report/*.aux
+report/*.log
+report/*.out
+report/*.synctex.gz
+
+# Reference material (original paper, poster, MATLAB code, generated guides) - never part of the repo
+References/
+references/

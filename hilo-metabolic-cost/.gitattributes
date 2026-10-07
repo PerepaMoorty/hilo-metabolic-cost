@@ -1,0 +1,4 @@
+* text=auto
+*.mat binary
+*.png binary
+*.pdf binary
