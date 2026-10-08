@@ -70,7 +70,7 @@ pip install -r requirements.txt
 
 ```bash
 pytest                                   # unit tests (~15 s)
-python -m scripts.run_experiments        # all experiments (~10 min) -> results/
+python -m scripts.run_experiments        # all experiments (~5 min) -> results/
 python -m scripts.run_experiments --quick  # fast smoke test (~2 min)
 jupyter notebook notebooks/              # open the notebooks
 ```
@@ -81,7 +81,32 @@ experiments. For the live demo open `notebooks/04_live_demo.ipynb` and run all c
 ## Results
 
 <!-- RESULTS:START -->
-_Results are added once the experiments are merged._
+Cross-validated MSE of normalised metabolic cost using all 29 features
+(`results/tables/model_comparison.csv`; noise floor of the measurement is about 0.0025).
+
+| Subject | Model | Random 5-fold | Leave-one-day-out | Paper (5-fold) |
+|---|---|---|---|---|
+| S1 | Constant | 0.0666 | 0.0917 | 0.0657 |
+| S1 | LASSO | 0.0091 | 0.0205 | 0.0089 |
+| S1 | Ridge | 0.0086 | **0.0143** | - |
+| S1 | Neural net (nested-tuned) | 0.0101 | 0.0223 | 0.0089 |
+| S2 | Constant | 0.0362 | 0.0478 | 0.0465 |
+| S2 | LASSO | 0.0135 | **0.0309** | 0.0176 |
+| S2 | Ridge | 0.0146 | 0.0358 | - |
+| S2 | Neural net (nested-tuned) | 0.0150 | 0.0315 | 0.0301 |
+
+Key findings:
+
+1. With the paper's random k-fold protocol we reproduce its accuracy (S1 LASSO 0.0091 vs 0.0089).
+2. Predicting an **unseen day** roughly doubles the error - day-to-day adaptation of the subject is
+   the main obstacle, and random k-fold over-states real-world accuracy.
+3. With all features, regularised linear models are as accurate as the shallow neural network;
+   the network only helps on the small step-only / EMG-only feature sets.
+4. Step + EMG beats either group alone; control parameters help noticeably under leave-one-day-out.
+5. Nested forward selection and PCA do not beat the full regularised models.
+
+![Model comparison S1](results/figures/model_comparison_S1.png)
+![Leave-one-day-out predictions S1](results/figures/lodo_predictions_S1.png)
 <!-- RESULTS:END -->
 
 ## Reference
