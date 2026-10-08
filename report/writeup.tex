@@ -54,13 +54,66 @@ full dataset before splitting; under LODO this made S2's LASSO error look 21\% l
 %% ---------------- Sections 4-6: Moorty Perepa ----------------
 %% B-SECTIONS:START
 \section{Implementation}
-% TODO (Moorty): code structure, neural network, nested tuning, selection/PCA.
+The code is a Python package (\texttt{src/}) built on scikit-learn, with unit tests, a single
+script that regenerates every table and figure, and four Jupyter notebooks (EDA, baselines,
+results, live demo). The neural network mirrors the paper's: one hidden layer of tanh units and a
+linear output, trained with the quasi-Newton L-BFGS solver; an L2 weight penalty replaces
+MATLAB's Bayesian regularisation, and both inputs and target are standardised inside the pipeline.
+The hidden size $\in\{1,2,3,4,6,8\}$ and penalty $\alpha\in\{0.1,1,10\}$ are chosen by an
+\emph{inner} 4-fold CV (nested CV), so test folds never influence model selection. We also swept
+1--10 neurons (paper Fig.~1), and ran forward stepwise selection and PCA nested inside the CV loop.
 
 \section{Results}
-% TODO (Moorty): results table, figure and discussion.
+Table~\ref{tab:res} reports cross-validated MSE with all features.
+\begin{table}[h]
+\centering\small
+\begin{tabular}{llccc}
+\toprule
+Subj. & Model & k-fold & LODO & Paper (k-fold)\\
+\midrule
+S1 & Constant & 0.0666 & 0.0917 & 0.0657\\
+   & LASSO    & 0.0091 & 0.0205 & 0.0089\\
+   & Ridge    & 0.0086 & 0.0143 & --\\
+   & NN       & 0.0101 & 0.0223 & 0.0089\\
+\midrule
+S2 & Constant & 0.0362 & 0.0478 & 0.0465\\
+   & LASSO    & 0.0135 & 0.0309 & 0.0176\\
+   & Ridge    & 0.0146 & 0.0358 & --\\
+   & NN       & 0.0150 & 0.0315 & 0.0301\\
+\bottomrule
+\end{tabular}
+\caption{MSE of normalised metabolic cost, all 29 features. Noise floor $\approx0.0025$.}
+\label{tab:res}
+\end{table}
+\vspace{-0.3cm}
+\begin{figure}[h]
+\centering
+\includegraphics[width=\columnwidth]{figures/model_comparison_S1.png}
+\vspace{-0.6cm}
+\caption{S1: MSE per model and feature set under both protocols.}
+\label{fig:cmp}
+\end{figure}
+\vspace{-0.3cm}
+
+\textbf{Reproduction.} Under random k-fold our errors match the paper (S1 LASSO 0.0091 vs 0.0089,
+an RMSE of about 10\% of normal-walking cost), and our nested-tuned NN improves on the paper's S2
+network (0.0150 vs 0.0301).
+\textbf{Unseen days.} LODO roughly doubles the error (S1 LASSO 0.0091$\to$0.0205; S2
+0.0135$\to$0.0309); for S2 the best model explains only about 14\% of an unseen day's variance.
+\textbf{Linear vs neural.} With all features, regularised linear models match the NN (best LODO:
+Ridge 0.0143 for S1); the NN helps only on the small step-only and EMG-only sets, and larger
+networks degrade under LODO.
+\textbf{Features.} Step+EMG beats either group alone (Fig.~\ref{fig:cmp}). Control parameters help
+markedly under LODO (S2 LASSO 0.0448$\to$0.0309), likely because the optimiser's settings drift
+across days and encode adaptation. Nested forward selection (LODO MSE $\approx0.046$) and PCA did
+not beat the full regularised models, and the selected features changed between held-out days.
 
 \section{Conclusions}
-% TODO (Moorty): conclusions and future work.
+We reproduced the reference accuracy in Python with a leak-free pipeline, and showed that the
+headline numbers depend on the evaluation protocol: predicting a new walking day is roughly twice
+as hard, because the subject's adaptation shifts metabolic cost from day to day. On 180 samples,
+simple regularised linear models are as accurate as a shallow neural network. Future work: more
+subjects, day-level normalisation or adaptation features, and evaluating on fully unseen subjects.
 %% B-SECTIONS:END
 
 \begin{thebibliography}{9}\small
